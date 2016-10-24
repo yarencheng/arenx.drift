@@ -33,7 +33,8 @@ class Main extends React.Component {
       rocketPosition: {
         x: 100, // TODO: change default position
         y: 100
-      }
+      },
+      rocketRotate: '-90 deg'
     };
   }
 
@@ -41,10 +42,20 @@ class Main extends React.Component {
 
     var flattenRocketStyle = StyleSheet.flatten(styles.rocket);
 
+    // ToastAndroid.show(JSON.stringify(Math.tan(90)), ToastAndroid.SHORT);
+
     return (
       <TouchableWithoutFeedback
-        onPress={()=>{
-          ToastAndroid.show('onPresskkkk', ToastAndroid.SHORT);
+        onPress={(e)=>{
+
+          var x = e.nativeEvent.pageX - (Dimensions.get('window').width / 2);
+          var y = - (e.nativeEvent.pageY - (Dimensions.get('window').height / 2));
+
+          var rad = (-Math.atan2(y, x) - (Math.PI/2)) + ' rad';
+
+          this.setState({
+            rocketRotate: rad
+          });
         }}
         onLayout={(e)=>{
           this.setState({
@@ -56,13 +67,17 @@ class Main extends React.Component {
         }}
       >
         <View style = {[styles.debugHight1, styles.main]} >
+          <Text>{this.state.rocketRotate}</Text>
           <Rocket
             style={[
               styles.rocket,
               {
                 position: 'absolute',
                 left: this.state.rocketPosition.x - (flattenRocketStyle.width / 2),
-                top: this.state.rocketPosition.y - (flattenRocketStyle.height / 2)
+                top: this.state.rocketPosition.y - (flattenRocketStyle.height / 2),
+                transform: [{
+                  rotate: this.state.rocketRotate
+                }]
               }
             ]}
           />
