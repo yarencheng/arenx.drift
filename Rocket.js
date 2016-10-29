@@ -32,14 +32,14 @@ class Rocket extends View {
         <View
           style={[styles.debugHight, styles.rocket, this.props.style]}
         >
-          <Surface  width={width} height={height}>
-            <Group x={0} y={0}>
+          <Surface  width={width*0.8} height={height}>
+
               <Shape
                 d={"M0 0 H " + width + " L " + (width/2) + " " + height + " L 0 0"}
                 fill='red'
               />
 
-            </Group>
+
           </Surface>
         </View>
     );

@@ -22,67 +22,38 @@ const {
 } = ART;
 
 import Rocket from './Rocket'
+import GameView from './GameView'
+
+var debug_mode = true;
 
 class Main extends React.Component {
 
   constructor(props){
     super(props);
-    this.state = {
-      fill: 'red',
-      x:0,
-      rocketPosition: {
-        x: 100, // TODO: change default position
-        y: 100
-      },
-      rocketRotate: '-90 deg'
-    };
+  }
+
+  componentDidMount(){
   }
 
   render() {
 
     var flattenRocketStyle = StyleSheet.flatten(styles.rocket);
+    var gameViewWidth = Dimensions.get('window').width > Dimensions.get('window').height ? Dimensions.get('window').width : Dimensions.get('window').height;
 
     // ToastAndroid.show(JSON.stringify(Math.tan(90)), ToastAndroid.SHORT);
 
     return (
-      <TouchableWithoutFeedback
-        onPress={(e)=>{
-
-          var x = e.nativeEvent.pageX - (Dimensions.get('window').width / 2);
-          var y = - (e.nativeEvent.pageY - (Dimensions.get('window').height / 2));
-
-          var rad = (-Math.atan2(y, x) - (Math.PI/2)) + ' rad';
-
-          this.setState({
-            rocketRotate: rad
-          });
-        }}
-        onLayout={(e)=>{
-          this.setState({
-            rocketPosition: {
-              x: e.nativeEvent.layout.width / 2,
-              y: e.nativeEvent.layout.height / 2,
-            }
-          });
-        }}
-      >
-        <View style = {[styles.debugHight1, styles.main]} >
-          <Text>{this.state.rocketRotate}</Text>
-          <Rocket
-            style={[
-              styles.rocket,
-              {
-                position: 'absolute',
-                left: this.state.rocketPosition.x - (flattenRocketStyle.width / 2),
-                top: this.state.rocketPosition.y - (flattenRocketStyle.height / 2),
-                transform: [{
-                  rotate: this.state.rocketRotate
-                }]
-              }
-            ]}
-          />
-        </View>
-      </TouchableWithoutFeedback>
+      <View style = {[styles.debugHight1, styles.main]} >
+        <GameView
+          showGridline = {debug_mode}
+          mapWidth = {gameViewWidth}
+          rocketScale = {1.5}
+          style = {[styles.gameView, {
+            left: (Dimensions.get('window').width - gameViewWidth) / 2,
+            top: (Dimensions.get('window').height - gameViewWidth) / 2
+          }]}
+        />
+      </View>
     );
   }
 }
@@ -103,9 +74,11 @@ const styles = StyleSheet.create({
   main: {
     flex: 1
   },
-  rocket: {
-    width: 100,
-    height: 100
+  gameView: {
+    position: 'absolute',
+    transform: [{
+      scale: debug_mode ? 1 : 3
+    }]
   }
 })
 
