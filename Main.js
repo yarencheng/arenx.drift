@@ -30,9 +30,16 @@ class Main extends React.Component {
 
   constructor(props){
     super(props);
+    this.state = {
+      debug: 1
+    };
   }
 
   componentDidMount(){
+    // setTimeout(()=>{
+    //
+    //
+    // },1000);
   }
 
   render() {
@@ -40,21 +47,17 @@ class Main extends React.Component {
     var flattenRocketStyle = StyleSheet.flatten(styles.rocket);
     var gameViewWidth = Dimensions.get('window').width > Dimensions.get('window').height ? Dimensions.get('window').width : Dimensions.get('window').height;
 
-    // ToastAndroid.show(JSON.stringify(Math.tan(90)), ToastAndroid.SHORT);
+    //  ToastAndroid.show(JSON.stringify(Math.tan(90)), ToastAndroid.SHORT);
 
     return (
       <View style = {[styles.debugHight1, styles.main]} >
         <GameView
-          showGridline = {debug_mode}
-          mapWidth = {gameViewWidth}
-          rocketScale = {1.5}
-          style = {[styles.gameView, {
-            left: (Dimensions.get('window').width - gameViewWidth) / 2,
-            top: (Dimensions.get('window').height - gameViewWidth) / 2
-          }]}
+          style = {[styles.gameView]}
         />
       </View>
     );
+
+
   }
 }
 
@@ -62,8 +65,8 @@ const styles = StyleSheet.create({
   debugHight1:{
     borderColor: 'red',
     borderWidth: 1,
-    padding: 1,
-    margin: 1
+    // padding: 1,
+    // margin: 1
   },
   debugHight2:{
     borderColor: 'green',
@@ -75,7 +78,9 @@ const styles = StyleSheet.create({
     flex: 1
   },
   gameView: {
-    position: 'absolute',
+    top: 0,
+    left: 0,
+    flex: 1,
     transform: [{
       scale: debug_mode ? 1 : 3
     }]

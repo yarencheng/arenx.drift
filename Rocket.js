@@ -20,42 +20,31 @@ const {
   Rectangle
 } = ART;
 
-class Rocket extends View {
+class Rocket extends React.Component {
   render() {
-    var width = StyleSheet.flatten(this.props.style).width | 100;
-    var height = StyleSheet.flatten(this.props.style).height | 100;
-
-    // ToastAndroid.show(JSON.stringify(StyleSheet.flatten(this.props.style)), ToastAndroid.SHORT);
 
     return (
 
         <View
-          style={[styles.debugHight, styles.rocket, this.props.style]}
+          style={[
+            styles.debugHight, {
+              position: 'absolute',
+              top: this.props.y,
+              left: this.props.x,
+              width: this.props.width,
+              height: this.props.height,
+            }]}
         >
-          <Surface  width={width*0.8} height={height}>
-
-              <Shape
-                d={"M0 0 H " + width + " L " + (width/2) + " " + height + " L 0 0"}
-                fill='red'
-              />
-
-
-          </Surface>
+          <View style={styles.rocket}/>
         </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  debugHight:{
-    borderColor: 'blue',
-    borderWidth: 1,
-    padding: 1,
-    margin: 1
-  },
   rocket:{
-    width: 10,
-    height: 10
+    flex: 1,
+    backgroundColor: 'blue'
   }
 })
 

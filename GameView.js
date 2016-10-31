@@ -9,8 +9,12 @@ import {
   ART,
   TouchableHighlight,
   TouchableWithoutFeedback,
-  ToastAndroid
+  ToastAndroid,
+  InteractionManager
 } from 'react-native';
+
+import Rocket from './Rocket'
+import Planet from './Planet'
 
 const {
   Surface,
@@ -21,114 +25,252 @@ const {
   Transform
 } = ART;
 
+var gameData = {
+  screenSize: {width: 0, height: 0}
+};
 
 class GameView extends React.Component {
 
   constructor(props){
     super(props);
     this.state = {
-      rocketPosition: {x: this.props.mapWidth/2, y: this.props.mapWidth/2},
-      rocketVelocity: {x: 10, y:10},
-      rocketAcceleration: {x: 1, y:2},
-      lastUpdate: null
+      gameViewLayout: {x: 0, y: 0, width: 0, height: 0},
+      rocketSize: {width: 50, height: 50},
+      rocketSpeed: {vx: 10, vy: 50, ax: 1, ay: 2, lastUpdate: 0},
+      planets: []
     };
   }
 
+
+
   componentDidMount(){
-    ToastAndroid.show(JSON.stringify(new Date().getMilliseconds()), ToastAndroid.SHORT);
 
+    this.isUpdating = false;
     setInterval(()=>{
+      // this.setState(this.updateAll(this.state));
 
-      // TODO: remove
-      if (!!this.state.lastUpdate) {
-
-        var d = new Date();
-        var secondDiff = (d.getTime() - this.state.lastUpdate.getTime()) / 1000;
-
-        this.setState({
-          rocketVelocity: {
-            x: this.state.rocketVelocity.x + (this.state.rocketAcceleration.x * secondDiff),
-            y: this.state.rocketVelocity.y + (this.state.rocketAcceleration.y * secondDiff)},
-          rocketPosition: {
-            x: this.state.rocketPosition.x + (this.state.rocketVelocity.x * secondDiff),
-            y: this.state.rocketPosition.y + (this.state.rocketVelocity.y * secondDiff)},
-            lastUpdate: d
-        });
-      } else {
-        this.setState({
-          lastUpdate: new Date()
-        });
+      if (this.isUpdating) {
+        return;
       }
 
+      this.isUpdating = true;
 
-    }, 10);
+      InteractionManager.runAfterInteractions(() => {
+        // return this.updateAll(this.state);
+        this.setState(this.updateAll(this.state));
+        this.isUpdating = false;
+      });
+    }, 1000/35);
   }
 
+  updateRocketSpeed(state){
 
-  getGridline() {
-
-    var width = this.props.mapWidth;
-
-    if (!this.props.showGridline) {
-      return ;
+    if (0 === state.rocketSpeed.lastUpdate) {
+      state.rocketSpeed.lastUpdate = new Date().getTime();
+      return state;
     }
-    return (
-      <Group x={0} y={0}>
-        <Shape d = {"M0 0 H " + width} stroke = 'green'/>
-        <Shape d = {"M0 " + width*0.2 + " H " + width} stroke = 'green'/>
-        <Shape d = {"M0 " + width*0.4 + " H " + width} stroke = 'green'/>
-        <Shape d = {"M0 " + width*0.6 + " H " + width} stroke = 'green'/>
-        <Shape d = {"M0 " + width*0.8 + " H " + width} stroke = 'green'/>
-        <Shape d = {"M0 " + width + " H " + width} stroke = 'green'/>
-        <Shape d = {"M 0 0 V " + width} stroke = 'green'/>
-        <Shape d = {"M " + width*0.2 + " 0 V " + width} stroke = 'green'/>
-        <Shape d = {"M " + width*0.4 + " 0 V " + width} stroke = 'green'/>
-        <Shape d = {"M " + width*0.6 + " 0 V " + width} stroke = 'green'/>
-        <Shape d = {"M " + width*0.8 + " 0 V " + width} stroke = 'green'/>
-      </Group>
-    );
+
+    var now = new Date().getTime();
+    var diff = now - state.rocketSpeed.lastUpdate;
+
+    state.rocketSpeed.lastUpdate = now;
+    state.rocketSpeed.vx += state.rocketSpeed.ax * diff / 1000;
+    state.rocketSpeed.vy += state.rocketSpeed.ay * diff / 1000;
+
+    return state;
   }
 
-  getRocket(){
+  updatePlanets(state){
 
-    var rocketScale = this.props.rocketScale;
-    var rocketWidth = 100 * rocketScale;
+    if (state.gameViewLayout.width === 0 || state.gameViewLayout.height === 0) {
+      return state;
+    }
 
-    return (
-      <Group
-        scale={rocketScale}
-        x={this.state.rocketPosition.x - (rocketWidth/2)}
-        y={this.state.rocketPosition.y - (rocketWidth/2)} >
-      <Shape
-        d={"M35.6,66.5c2.2,2.2,1.4,6.4-1.8,9.6c-3.7,3.8-12.7,6.2-13.1,6.3l-1.5,0.4l0.4-1.5c0.1-0.4,2.8-9.6,6.3-13 c1.9-1.9,4.3-3,6.4-3C33.6,65.2,34.7,65.7,35.6,66.5z"}
-        fill='red'
+    // 5*5 groups
+    // [ planets[], planets[], planets[], planets[], planets[] ]
+    // [ planets[], planets[], planets[], planets[], planets[] ]
+    // [ planets[], planets[], planets[], planets[], planets[] ]
+    // [ planets[], planets[], planets[], planets[], planets[] ]
+    // [ planets[], planets[], planets[], planets[], planets[] ]
 
-      />
-      <Shape
-        d={"M80.8,19.8l0,1.7c0,14.8-2.9,25.9-17,38.9c0.2,7-1.9,12.6-6.4,17.1L56,78.9l-8.7-12.8c-3,1.3-7.2,0.2-10.2-2.8 C34,60.2,33,56,34.3,53l-12.8-8.8l1.5-1.4c4.5-4.5,10.2-6.6,17.2-6.3c13.1-14,24.2-16.8,39-16.7L80.8,19.8z M66.7,40.3     c0.1-3.5-2.6-6.5-6.2-6.7c-3.5-0.2-6.5,2.6-6.7,6.2c-0.1,3.5,2.6,6.5,6.2,6.7S66.5,43.9,66.7,40.3z"}
-        fill='red'
-      />
-      </Group>
-    );
+
+    // remove out-of-range planets(not in 5*5 group)
+    var min_x = -2 * state.gameViewLayout.width;
+    var max_x = 3 * state.gameViewLayout.width;
+    var min_y = -2 * state.gameViewLayout.height;
+    var max_y = 3 * state.gameViewLayout.height;
+
+    state.planets = state.planets.filter((p)=>{
+      return min_x <= p.x && p.x < max_x && min_y <= p.y && p.y < max_y;
+    });
+
+
+    // find out which group is empty
+    // for (var index_x = 0; index_x < 5; index_x++) {
+    //
+    //   var left_x = (index_x - 2) * state.gameViewLayout.width;
+    //   var right_x = (index_x - 1) * state.gameViewLayout.width;
+    //
+    //   for (var index_y = 0; index_y < 5; index_y++) {
+    //
+    //     var left_y = (index_y - 2) * state.gameViewLayout.height;
+    //     var right_y = (index_y - 1) * state.gameViewLayout.height;
+    //
+    //     var count = state.planets.filter((p)=>{
+    //       return left_x <= p.x && p.x < right_x && left_y <= p.y && p.y < right_y;
+    //     }).length;
+    //
+    //     if (0 !== count) {
+    //       continue;
+    //     }
+
+        // create plante randomly
+        // TODO
+        // state.planets.push({
+        //   x: (left_x + right_x) / 2,
+        //   y: (left_y + right_y) / 2,
+        //   width: 20,
+        //   height: 20
+        // });
+    //   }
+    // }
+
+    var group = [[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]];
+    state.planets.forEach((p)=>{
+      var index_x = Math.floor(p.x / state.gameViewLayout.width) + 2;
+      if (index_x < 0 || 5 <= index_x) {
+        return;
+      }
+      var index_y = Math.floor(p.y / state.gameViewLayout.height) + 2;
+      if (index_y < 0 || 5 <= index_y) {
+        return;
+      }
+      group[index_x][index_y]++;
+    });
+
+    for (var index_x = 0; index_x < 5; index_x++) {
+
+      var left_x = (index_x - 2) * state.gameViewLayout.width;
+      var right_x = (index_x - 1) * state.gameViewLayout.width;
+
+      for (var index_y = 0; index_y < 5; index_y++) {
+
+        var left_y = (index_y - 2) * state.gameViewLayout.height;
+        var right_y = (index_y - 1) * state.gameViewLayout.height;
+
+        if (index_x === 2 && index_y ==2) {
+          continue;
+        }
+
+        if (0 === group[index_x][index_y]) {
+          // create plante randomly
+          // TODO
+          state.planets.push({
+            x: (left_x + right_x) / 2,
+            y: (left_y + right_y) / 2,
+            width: 100,
+            height: 100
+          });
+        }
+      }
+    }
+
+
+    // move to next location based on speed of rocket
+    var now = new Date().getTime();
+    if (!state.lastUpdate) {
+      state.lastUpdate = now;
+    } else {
+      var diff = now - state.lastUpdate;
+      state.lastUpdate = now;
+      var dvx = state.rocketSpeed.vx * diff / 1000;
+      var dvy = state.rocketSpeed.vy * diff / 1000;
+      state.planets.forEach((p)=>{
+
+        // var now = new Date().getTime();
+        // var diff = now - p.lastUpdate;
+
+        // p.lastUpdate = now;
+        p.x -= dvx;
+        p.y -= dvy;
+      });
+    }
+
+    return state;
+  }
+
+
+  updateAll(state){
+
+    state = this.updateRocketSpeed(state);
+    state = this.updatePlanets(state);
+
+    return state;
+  }
+
+  onLayoutChange(newLayout, oldLayout){
+
+    if (JSON.stringify(newLayout) == JSON.stringify(oldLayout)) {
+      return;
+    }
+
+    var state = this.state;
+
+    state.gameViewLayout = newLayout;
+
+    state = this.updateAll(state);
+
+    this.setState(state);
+
+
   }
 
   render() {
 
     var mapWidth = this.props.mapWidth;
 
-    return (
+    var planets = [];
 
+    this.state.planets
+      .filter((p)=>{
+        // filter planets not in screen to reduce UI latency
+        return (0 <= p.x + (p.width/2)) &&
+          (p.x - (p.width/2) <= this.state.gameViewLayout.width) &&
+          (0 <= p.y + (p.height/2)) &&
+          (p.y - (p.height/2) <= this.state.gameViewLayout.height);
+      })
+      .map((p)=>{
+        // map metadata to UI component
+        planets.push((
+          <Planet
+            key={planets.length}
+            x={p.x}
+            y={p.y}
+            width={p.width}
+            height={p.height}
+            name={planets.length}
+          />
+        ));
+      });
+
+    return (
+      <View
+        style={[styles.debugHight, this.props.style]}
+        onLayout={(e)=>{this.onLayoutChange(e.nativeEvent.layout, this.state.gameViewLayout);}}
+      >
+        <Rocket
+          x={(this.state.gameViewLayout.width - this.state.rocketSize.width)/2}
+          y={(this.state.gameViewLayout.height - this.state.rocketSize.height)/2}
+          width={this.state.rocketSize.width}
+          height={this.state.rocketSize.height}
+        />
         <View
-          style={[styles.debugHight, this.props.style, {
-            width: mapWidth,
-            height: mapWidth
-          }]}
+          style={[styles.debugHight, this.props.style]}
+
         >
-          <Surface width={mapWidth} height={mapWidth}>
-            {this.getGridline()}
-            {this.getRocket()}
-          </Surface>
+          {planets}
         </View>
+      </View>
     );
   }
 }
@@ -137,8 +279,6 @@ const styles = StyleSheet.create({
   debugHight:{
     borderColor: 'green',
     borderWidth: 1,
-    padding: 1,
-    margin: 1
   }
 })
 
